@@ -360,7 +360,7 @@ def vote(pred, test_labels, out_log_file, name):
 
 def main():
     # Training settings
-    parser = argparse.ArgumentParser(description='CDAN USPS MNIST')
+    parser = argparse.ArgumentParser(description='MOM robust UDA for digits with fine-tune')
     parser.add_argument('method', type=str, default='CDAN-E',
                         choices=['CDAN', 'CDAN-E', 'DANN', 'IWDAN', 'NANN', 'IWDANORACLE', 'IWCDAN', 'IWCDANORACLE', 'IWCDAN-E', 'IWCDAN-EORACLE'])
     parser.add_argument('--task', default='mnist2usps', help='task to perform', choices=['usps2mnist', 'mnist2usps'])

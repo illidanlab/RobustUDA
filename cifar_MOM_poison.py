@@ -162,26 +162,6 @@ def train(config, source_samples, source_labels, target_samples, target_labels, 
     test_bs = data_config["test"]["batch_size"]
     root_folder = data_config["root_folder"]
     # noisy label
-    if args.noise_type != 'clean':
-        source_labels = []
-        target_labels = []
-        for i, (img, l) in enumerate(dsets["source"].imgs):
-            source_labels.append(l)
-        for i, (img, l) in enumerate(dsets["target"].imgs):
-            target_labels.append(l)
-        #print("original source label", source_labels)
-        #print("original target label", target_labels)
-        #print("original source", dsets["source"].imgs)
-        source_labels, source_actual_noise_rate, source_noise_or_not = noise_mnist(config["device"], args.noise_type,
-                                                                                   torch.tensor(source_labels).to(config["device"]), args.noise_rate)
-        target_labels, target_actual_noise_rate, target_noise_or_not = noise_mnist(config["device"], args.noise_type,
-                                                                                   torch.tensor(target_labels).to(config["device"]), args.noise_rate)
-        print("source_actual_noise_rate", source_actual_noise_rate, "source_noise_or_not", source_noise_or_not)
-        print("target_actual_noise_rate", target_actual_noise_rate, "target_noise_or_not", target_noise_or_not)
-        for i, (img, l) in enumerate(dsets["source"].imgs):
-            dsets["source"].imgs[i] = (img, source_labels[i])
-        for i, (img, l) in enumerate(dsets["target"].imgs):
-            dsets["target"].imgs[i] = (img, target_labels[i])
 
     ##use backdoor attack to poison data
     # the position to add the trigger
@@ -588,7 +568,7 @@ def read_STLlabels(path_to_labels):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Conditional Domain Adversarial Network')
+    parser = argparse.ArgumentParser(description='MOM robust UDA for cifar')
     parser.add_argument('method', type=str, choices=[
                         'NANN', 'DANN', 'IWDAN', 'IWDANORACLE', 'CDAN', 'IWCDAN', 'IWCDANORACLE', 'CDAN-E', 'IWCDAN-E', 'IWCDAN-EORACLE'])
     parser.add_argument('--gpu_id', type=str, nargs='?', default='0', help="device id to run")
@@ -610,7 +590,6 @@ if __name__ == "__main__":
     parser.add_argument('--ratio', type=int, default=0, help='ratio option. If 0 original dataset, if 1, only 30% of samples in the first half of the classes are considered')
     parser.add_argument('--ma', type=float, default=0.5,
                         help='weight for the moving average of iw')
-    parser.add_argument('--noise_type', default='clean', choices=['clean', 'pairflip', 'symmetric'])
     parser.add_argument('--noise_rate', type=float, default=0.2,
                         help='noise rate for the label of training data')
     parser.add_argument('--corrupt', default='clean', choices=['badnet', 'clean', 'clbd'])

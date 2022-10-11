@@ -29,7 +29,6 @@ from scipy.stats import wasserstein_distance
 from imgaug import augmenters as iaa
 from PIL import Image
 import tqdm
-from data.usps2mnist.noise_mnist import *
 from tiny_imagenet.generate_poison import *
 import data_loaders
 from batchup import data_source, work_pool

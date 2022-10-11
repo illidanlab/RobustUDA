@@ -17,7 +17,6 @@ from torchvision import datasets, transforms
 import loss as loss_func
 import network
 from data_list import build_uspsmnist, sample_ratios, subsampling
-from data.usps2mnist.noise_mnist import noisy, noise_mnist
 from imgaug import augmenters as iaa
 from PIL import Image
 import os.path as osp
@@ -365,7 +364,7 @@ def main():
     parser.add_argument('method', type=str, default='CDAN-E',
                         choices=['CDAN', 'CDAN-E', 'DANN', 'IWDAN', 'NANN', 'IWDANORACLE', 'IWCDAN', 'IWCDANORACLE', 'IWCDAN-E', 'IWCDAN-EORACLE'])
     parser.add_argument('--task', default='mnist2usps', help='task to perform', choices=['usps2mnist', 'mnist2usps'])
-    parser.add_argument('--noise_type', default='clean', choices=['clean', 'pairflip', 'symmetric'])
+
     parser.add_argument('--noise_rate', type=float, default=0.2,
                         help='noise rate for the label of training data')
     parser.add_argument('--batch_size', type=int, default=64,
@@ -557,14 +556,6 @@ def main():
     test_samples, test_labels = sample_ratios(
         test_samples, test_labels, ratios_test)
 
-    # noisy label
-    if args.noise_type != 'clean':
-        source_labels, source_actual_noise_rate, source_noise_or_not = noise_mnist(args.device, args.noise_type,
-                                                                                   source_labels, args.noise_rate)
-        target_labels, target_actual_noise_rate, target_noise_or_not = noise_mnist(args.device, args.noise_type,
-                                                                                   target_labels, args.noise_rate)
-        print("source_actual_noise_rate", source_actual_noise_rate, "source_noise_or_not", source_noise_or_not)
-        print("target_actual_noise_rate", target_actual_noise_rate, "target_noise_or_not", target_noise_or_not)
 
     if args.corrupt != 'clean':
         for i in range(source_samples.shape[0]):

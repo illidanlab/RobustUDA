@@ -20,8 +20,7 @@ import torchvision.models as models
 import numpy as np
 from network import LeNet, Model_digit
 
-from models import *
-#from tinyimagenet_module import TinyImageNet
+
 
 TINYIMAGENET_ROOT = "/fs/cml-datasets/tiny_imagenet"
 

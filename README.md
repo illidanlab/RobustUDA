@@ -6,6 +6,8 @@ digits tasks (USPS <-> MNIST), and image tasks (CIFAR10 <-> STL)
 
 We utilize two kinds of backdoor attacks to corrupt the source training data:
 BadNet and CLBD
+
+To download digits datasets, you can e.g. unpack the following [dataset](https://github.com/thuml/CDAN/blob/master/data/usps2mnist/images.tar.gz) in data/digits.
 ## Arguments
 we provide a detailed description on key arguments.
 | Arguments   | Discription  |

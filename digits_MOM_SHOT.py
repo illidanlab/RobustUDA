@@ -23,6 +23,7 @@ import os.path as osp
 from scipy import stats
 from tiny_imagenet.generate_poison import *
 from scipy.spatial.distance import cdist
+from poison_crafting.craft_poisons_clbd import clbd_attack, clbd_attack_digits
 
 
 def Entropy(input_):
@@ -387,7 +388,7 @@ def main():
     parser.add_argument("-u", "--mu", help="Hyperparameter of the coefficient of the domain adversarial loss", type=float, default=1.0)
     parser.add_argument('--ratio', type =float, default=0, help='ratio option')
     parser.add_argument('--ma', type=float, default=0.5, help='weight for the moving average of iw')
-    parser.add_argument('--corrupt', default='clean', choices=['gauss', 's&p', 'poisson', 'speckle'])
+    parser.add_argument('--corrupt', default='clean', choices=['badnet', 'clean', 'clbd'])
     parser.add_argument('--block', type=int, default=5,
                         help='The number of blocks')
     parser.add_argument('--poison', type=int, default=0,
@@ -506,21 +507,23 @@ def main():
         print('Building dataset for test and writing to {}'.format(test_path))
         test_samples, test_labels = build_dataset(
             test_list, test_path, args.root_folder, args.device)
-   ##use backdoor attack to poison data
-    # the position to add the trigger
+        ##use backdoor attack to poison data
+        # the position to add the trigger
     x, y = np.random.choice([2, 25]), np.random.choice([2, 25])
-    if args.poison != 0:
-        source_samples, source_labels = generate_image(source_path, x, y, 10, args.poison_ratio)
-        source_samples, source_labels = torch.Tensor(source_samples).to(
-            args.device), torch.LongTensor(source_labels).to(args.device)
-    test_samples_poison, test_labels_poison = generate_image(test_path, x, y, 10, 1)
-    test_samples_poison, test_labels_poison = torch.Tensor(test_samples_poison).to(
+    if args.corrupt == 'badnet':
+        if args.poison_ratio > 0:
+            source_samples, source_labels = generate_image(source_path, x, y, 10, args.poison_ratio)
+        test_samples_poison, test_labels_poison = generate_image(test_path, x, y, 10, 1)
+        test_samples_poison, test_labels_poison = torch.Tensor(test_samples_poison).to(
             args.device), torch.LongTensor(test_labels_poison).to(args.device)
+    elif args.corrupt == 'clbd':
+        source_samples, source_labels, test_samples, test_labels, test_samples_poison, test_labels_poison = clbd_attack_digits(
+            source_samples, source_labels, test_samples, test_labels, args.poison_ratio, args.ma)
+
     print('finish poison! Poison data number is {}'.format(args.poison_ratio))
-
-
-
-
+    source_samples, source_labels = torch.Tensor(source_samples).to(args.device), torch.LongTensor(source_labels).to(
+        args.device)
+    # test_samples, test_labels = torch.Tensor(test_samples).to(args.device), torch.LongTensor(test_labels).to(args.device)
 
 
     print('Data loaded in {}'.format(time.time() - t_data))
@@ -678,7 +681,8 @@ def main():
                   optimizer, optimizer_ad, epoch, start_epoch, args.method, source_label_distribution, out_wei_file,
                   cov_mat, pseudo_target_label, class_weights, true_weights)
         pred_test = test(args, epoch + 1, model, test_samples, test_labels, start_time_test, out_log_file, name='Target test')
-        pred_test_poison = test(args, epoch + 1, model, test_samples_poison, test_labels, start_time_test, out_log_file,
+        if args.corrupt != 'clean':
+            pred_test_poison = test(args, epoch + 1, model, test_samples_poison, test_labels, start_time_test, out_log_file,
                                 name='Target test poison')
         pred_source = test(args, epoch + 1, model, source_samples, source_labels,
              start_time_test, out_log_file_train, name='Source train')
@@ -692,8 +696,9 @@ def main():
         pred_source_all.append(pred_source)
 
     vote(pred_test_all, test_labels, out_log_file, name='Target test')
-    vote(pred_test_poison_all, test_labels, out_log_file, name='Target test poison')
-    vote(pred_test_poison_all, test_labels_poison, out_log_file, name='Target test attack succese rate')
+    if args.corrupt != 'clean':
+        vote(pred_test_poison_all, test_labels, out_log_file, name='Target test poison')
+        vote(pred_test_poison_all, test_labels_poison, out_log_file, name='Target test attack succese rate')
 
 
 

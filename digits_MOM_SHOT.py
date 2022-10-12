@@ -560,9 +560,7 @@ def main():
         test_samples, test_labels, ratios_test)
 
 
-    if args.corrupt != 'clean':
-        for i in range(source_samples.shape[0]):
-            source_samples[i] = noisy(args.device, args.corrupt, source_samples[i])
+
     # compute labels distribution on the source and target domain
     source_label_distribution = np.zeros((class_num))
     for img in source_labels:
